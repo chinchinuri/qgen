@@ -17,16 +17,8 @@
             position: relative;
             background: #fff; /* Фоновий колір QR-коду */
         }
-        #qrImage::before {
-            content: '';
-            display: block;
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0;
-            border: 1px solid transparent; /* Може бути видимий як фон */
-            box-sizing: border-box;
+        .qr-padding {
+            padding: 0;
         }
     </style>
 </head>
@@ -127,7 +119,7 @@
             <h3 class="text-center">Згенерований QR-код</h3>
             <div class="text-center">
                 <div id="qrContainer">
-                    <div id="qrImage"></div>
+                    <div id="qrImage" class="qr-padding"></div>
                 </div>
             </div>
         </div>
