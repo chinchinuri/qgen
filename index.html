@@ -148,7 +148,7 @@
                 var phone = document.getElementById('vcardPhoneInput').value;
                 var email = document.getElementById('vcardEmailInput').value;
                 var address = document.getElementById('vcardAddressInput').value;
-                data = `BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nTEL:${phone}\nEMAIL:${email}\nADR:${address}\nEND:VCARD`;
+                data = `BEGIN:VCARD\nVERSION:3.0\nFN;CHARSET=UTF-8:${name}\nTEL;CHARSET=UTF-8:${phone}\nEMAIL;CHARSET=UTF-8:${email}\nADR;CHARSET=UTF-8:${address}\nEND:VCARD`;
             }
 
             var width = document.getElementById('widthInput').value;
@@ -161,14 +161,16 @@
             var padding = document.getElementById('paddingInput').value;
 
             var qrCodeOptions = {
-                width: width,
-                height: height,
+                width: parseInt(width),
+                height: parseInt(height),
                 data: data,
-                margin: padding / 100 * Math.min(width, height), // Відсоток від найменшого виміру
+                imageOptions: {
+                    crossOrigin: 'anonymous'
+                },
                 dotsOptions: {
                     color: dotColor,
                     type: dotStyle,
-                    radius: dotRadius / 100 // Перетворюємо відсоток у значення для qr-code-styling
+                    round: dotRadius / 100 // Перетворюємо відсоток у значення для qr-code-styling
                 },
                 backgroundOptions: {
                     color: backgroundColor,
@@ -179,7 +181,8 @@
                 },
                 cornersDotOptions: {
                     type: "extra-rounded" // Суцільні квадрати зі скругленими кутами
-                }
+                },
+                padding: parseInt(padding) / 100 // Перетворюємо відсоток у значення для qr-code-styling
             };
 
             var qrCode = new QRCodeStyling(qrCodeOptions);
@@ -195,8 +198,8 @@
                 var month = String(currentDate.getMonth() + 1).padStart(2, '0');
                 var day = String(currentDate.getDate()).padStart(2, '0');
                 var formattedDate = `${year}-${month}-${day}`;
-                var sanitizedURL = data.replace(/https?:\/\//, '').replace(/\//g, '_');
-                var fileName = `${formattedDate}-${sanitizedURL}.svg`;
+                var sanitizedData = data.replace(/https?:\/\//, '').replace(/\//g, '_').replace(/[\s]+/g, '_'); // Додано заміну пробілів
+                var fileName = `${formattedDate}-${sanitizedData}.svg`;
 
                 var downloadLink = document.createElement('a');
                 downloadLink.href = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgString);
