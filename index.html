@@ -53,6 +53,12 @@
                     <input type="number" class="form-control" id="cornerRadiusInput" value="0" min="0" max="50" required>
                 </div>
             </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="paddingInput">Відступи (у пікселях):</label>
+                    <input type="number" class="form-control" id="paddingInput" value="0" min="0" required>
+                </div>
+            </div>
             <button type="submit" class="btn btn-primary">Згенерувати</button>
         </form>
         <div class="mt-5">
@@ -75,6 +81,7 @@
             var dotStyle = document.getElementById('dotStyleSelect').value;
             var dotRadius = document.getElementById('dotRadiusInput').value;
             var cornerRadius = document.getElementById('cornerRadiusInput').value;
+            var padding = document.getElementById('paddingInput').value;
 
             var qrCodeOptions = {
                 width: width,
@@ -94,6 +101,9 @@
                 },
                 cornersDotOptions: {
                     type: "extra-rounded" // Суцільні квадрати зі скругленими кутами
+                },
+                qrOptions: {
+                    margin: parseInt(padding)
                 }
             };
 
