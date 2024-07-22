@@ -144,10 +144,10 @@
                 var longitude = document.getElementById('longitudeInput').value;
                 data = `geo:${latitude},${longitude}`;
             } else if (dataType === 'vcard') {
-                var name = document.getElementById('vcardNameInput').value;
-                var phone = document.getElementById('vcardPhoneInput').value;
-                var email = document.getElementById('vcardEmailInput').value;
-                var address = document.getElementById('vcardAddressInput').value;
+                var name = encodeURIComponent(document.getElementById('vcardNameInput').value);
+                var phone = encodeURIComponent(document.getElementById('vcardPhoneInput').value);
+                var email = encodeURIComponent(document.getElementById('vcardEmailInput').value);
+                var address = encodeURIComponent(document.getElementById('vcardAddressInput').value);
                 data = `BEGIN:VCARD\nVERSION:3.0\nFN;CHARSET=UTF-8:${name}\nTEL;CHARSET=UTF-8:${phone}\nEMAIL;CHARSET=UTF-8:${email}\nADR;CHARSET=UTF-8:${address}\nEND:VCARD`;
             }
 
@@ -161,16 +161,13 @@
             var padding = document.getElementById('paddingInput').value;
 
             var qrCodeOptions = {
-                width: parseInt(width),
-                height: parseInt(height),
+                width: width,
+                height: height,
                 data: data,
-                imageOptions: {
-                    crossOrigin: 'anonymous'
-                },
                 dotsOptions: {
                     color: dotColor,
                     type: dotStyle,
-                    round: dotRadius / 100 // Перетворюємо відсоток у значення для qr-code-styling
+                    radius: parseInt(dotRadius) / 100 // Перетворюємо відсоток у значення для qr-code-styling
                 },
                 backgroundOptions: {
                     color: backgroundColor,
