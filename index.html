@@ -37,6 +37,14 @@
                     <option value="rounded">Закруглений квадрат</option>
                 </select>
             </div>
+            <div class="form-group">
+                <label for="logoInput">Зображення для вставки (URL):</label>
+                <input type="text" class="form-control" id="logoInput">
+            </div>
+            <div class="form-group">
+                <label for="backgroundInput">Фон зображення (URL):</label>
+                <input type="text" class="form-control" id="backgroundInput">
+            </div>
             <button type="submit" class="btn btn-primary">Згенерувати</button>
         </form>
         <div class="mt-5">
@@ -56,16 +64,32 @@
             var height = document.getElementById('heightInput').value;
             var color = document.getElementById('colorInput').value;
             var dotStyle = document.getElementById('dotStyleSelect').value;
+            var logoUrl = document.getElementById('logoInput').value;
+            var backgroundUrl = document.getElementById('backgroundInput').value;
 
-            var qrCode = new QRCodeStyling({
+            var qrCodeOptions = {
                 width: width,
                 height: height,
                 data: url,
                 dotsOptions: {
                     color: color,
                     type: dotStyle
+                },
+                imageOptions: {
+                    crossOrigin: "anonymous",
+                    margin: 20
                 }
-            });
+            };
+
+            if (logoUrl) {
+                qrCodeOptions.image = logoUrl;
+            }
+
+            if (backgroundUrl) {
+                qrCodeOptions.backgroundImage = backgroundUrl;
+            }
+
+            var qrCode = new QRCodeStyling(qrCodeOptions);
 
             var qrContainer = document.getElementById('qrImage');
             qrContainer.innerHTML = ''; // Очистити контейнер перед генерацією нового QR-коду
