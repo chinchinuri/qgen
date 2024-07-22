@@ -12,8 +12,47 @@
         <h1 class="text-center">Генератор QR-кодів</h1>
         <form id="qrForm">
             <div class="form-group">
-                <label for="urlInput">URL або текст для кодування:</label>
-                <input type="text" class="form-control" id="urlInput" required>
+                <label for="dataTypeSelect">Тип даних:</label>
+                <select class="form-control" id="dataTypeSelect">
+                    <option value="text">Простий текст</option>
+                    <option value="url">URL</option>
+                    <option value="geo">Географічні координати</option>
+                    <option value="vcard">VCARD</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="dataInput">Дані для кодування:</label>
+                <input type="text" class="form-control" id="dataInput" required>
+            </div>
+            <div id="geoInputFields" style="display: none;">
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="latitudeInput">Широта:</label>
+                        <input type="text" class="form-control" id="latitudeInput">
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="longitudeInput">Довгота:</label>
+                        <input type="text" class="form-control" id="longitudeInput">
+                    </div>
+                </div>
+            </div>
+            <div id="vcardInputFields" style="display: none;">
+                <div class="form-group">
+                    <label for="vcardNameInput">Ім'я:</label>
+                    <input type="text" class="form-control" id="vcardNameInput">
+                </div>
+                <div class="form-group">
+                    <label for="vcardPhoneInput">Телефон:</label>
+                    <input type="text" class="form-control" id="vcardPhoneInput">
+                </div>
+                <div class="form-group">
+                    <label for="vcardEmailInput">Email:</label>
+                    <input type="email" class="form-control" id="vcardEmailInput">
+                </div>
+                <div class="form-group">
+                    <label for="vcardAddressInput">Адреса:</label>
+                    <input type="text" class="form-control" id="vcardAddressInput">
+                </div>
             </div>
             <div class="form-row">
                 <div class="form-group col-md-4">
@@ -70,10 +109,48 @@
     </div>
 
     <script>
+        document.getElementById('dataTypeSelect').addEventListener('change', function() {
+            var dataType = document.getElementById('dataTypeSelect').value;
+            var geoInputFields = document.getElementById('geoInputFields');
+            var vcardInputFields = document.getElementById('vcardInputFields');
+            var dataInput = document.getElementById('dataInput');
+
+            dataInput.required = (dataType === 'text' || dataType === 'url');
+
+            if (dataType === 'geo') {
+                geoInputFields.style.display = 'block';
+                vcardInputFields.style.display = 'none';
+                dataInput.style.display = 'none';
+            } else if (dataType === 'vcard') {
+                geoInputFields.style.display = 'none';
+                vcardInputFields.style.display = 'block';
+                dataInput.style.display = 'none';
+            } else {
+                geoInputFields.style.display = 'none';
+                vcardInputFields.style.display = 'none';
+                dataInput.style.display = 'block';
+            }
+        });
+
         document.getElementById('qrForm').addEventListener('submit', function(event) {
             event.preventDefault();
 
-            var url = document.getElementById('urlInput').value;
+            var dataType = document.getElementById('dataTypeSelect').value;
+            var data;
+            if (dataType === 'text' || dataType === 'url') {
+                data = document.getElementById('dataInput').value;
+            } else if (dataType === 'geo') {
+                var latitude = document.getElementById('latitudeInput').value;
+                var longitude = document.getElementById('longitudeInput').value;
+                data = `geo:${latitude},${longitude}`;
+            } else if (dataType === 'vcard') {
+                var name = document.getElementById('vcardNameInput').value;
+                var phone = document.getElementById('vcardPhoneInput').value;
+                var email = document.getElementById('vcardEmailInput').value;
+                var address = document.getElementById('vcardAddressInput').value;
+                data = `BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nTEL:${phone}\nEMAIL:${email}\nADR:${address}\nEND:VCARD`;
+            }
+
             var width = document.getElementById('widthInput').value;
             var height = document.getElementById('heightInput').value;
             var dotColor = document.getElementById('dotColorInput').value;
@@ -86,7 +163,7 @@
             var qrCodeOptions = {
                 width: width,
                 height: height,
-                data: url,
+                data: data,
                 margin: padding / 100 * Math.min(width, height), // Відсоток від найменшого виміру
                 dotsOptions: {
                     color: dotColor,
@@ -118,7 +195,7 @@
                 var month = String(currentDate.getMonth() + 1).padStart(2, '0');
                 var day = String(currentDate.getDate()).padStart(2, '0');
                 var formattedDate = `${year}-${month}-${day}`;
-                var sanitizedURL = url.replace(/https?:\/\//, '').replace(/\//g, '_');
+                var sanitizedURL = data.replace(/https?:\/\//, '').replace(/\//g, '_');
                 var fileName = `${formattedDate}-${sanitizedURL}.svg`;
 
                 var downloadLink = document.createElement('a');
