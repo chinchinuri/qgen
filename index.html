@@ -25,25 +25,23 @@
                     <input type="number" class="form-control" id="heightInput" value="512" required>
                 </div>
                 <div class="form-group col-md-4">
-                    <label for="colorInput">Колір:</label>
-                    <input type="color" class="form-control" id="colorInput" value="#000000" required>
+                    <label for="dotColorInput">Колір точок:</label>
+                    <input type="color" class="form-control" id="dotColorInput" value="#000000" required>
                 </div>
             </div>
-            <div class="form-group">
-                <label for="dotStyleSelect">Форма точок:</label>
-                <select class="form-control" id="dotStyleSelect">
-                    <option value="square">Квадрат</option>
-                    <option value="dots">Круг</option>
-                    <option value="rounded">Закруглений квадрат</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="logoInput">Зображення для вставки (URL):</label>
-                <input type="text" class="form-control" id="logoInput">
-            </div>
-            <div class="form-group">
-                <label for="backgroundInput">Фон зображення (URL):</label>
-                <input type="text" class="form-control" id="backgroundInput">
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="backgroundColorInput">Колір фону:</label>
+                    <input type="color" class="form-control" id="backgroundColorInput" value="#ffffff" required>
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="dotRadiusInput">Діаметр скруглення точок:</label>
+                    <input type="number" class="form-control" id="dotRadiusInput" value="0" min="0" required>
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="cornerRadiusInput">Діаметр скруглення кутів фону:</label>
+                    <input type="number" class="form-control" id="cornerRadiusInput" value="0" min="0" required>
+                </div>
             </div>
             <button type="submit" class="btn btn-primary">Згенерувати</button>
         </form>
@@ -62,32 +60,25 @@
             var url = document.getElementById('urlInput').value;
             var width = document.getElementById('widthInput').value;
             var height = document.getElementById('heightInput').value;
-            var color = document.getElementById('colorInput').value;
-            var dotStyle = document.getElementById('dotStyleSelect').value;
-            var logoUrl = document.getElementById('logoInput').value;
-            var backgroundUrl = document.getElementById('backgroundInput').value;
+            var dotColor = document.getElementById('dotColorInput').value;
+            var backgroundColor = document.getElementById('backgroundColorInput').value;
+            var dotRadius = document.getElementById('dotRadiusInput').value;
+            var cornerRadius = document.getElementById('cornerRadiusInput').value;
 
             var qrCodeOptions = {
                 width: width,
                 height: height,
                 data: url,
                 dotsOptions: {
-                    color: color,
-                    type: dotStyle
+                    color: dotColor,
+                    type: "rounded",
+                    radius: dotRadius
                 },
-                imageOptions: {
-                    crossOrigin: "anonymous",
-                    margin: 20
+                backgroundOptions: {
+                    color: backgroundColor,
+                    round: cornerRadius
                 }
             };
-
-            if (logoUrl) {
-                qrCodeOptions.image = logoUrl;
-            }
-
-            if (backgroundUrl) {
-                qrCodeOptions.backgroundImage = backgroundUrl;
-            }
 
             var qrCode = new QRCodeStyling(qrCodeOptions);
 
