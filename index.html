@@ -10,9 +10,23 @@
         #qrContainer {
             text-align: center;
             margin: auto;
+            position: relative;
         }
         #qrImage {
             display: inline-block;
+            position: relative;
+            background: #fff; /* Фоновий колір QR-коду */
+        }
+        #qrImage::before {
+            content: '';
+            display: block;
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            border: 1px solid transparent; /* Може бути видимий як фон */
+            box-sizing: border-box;
         }
     </style>
 </head>
@@ -159,7 +173,7 @@
                 var phone = encodeURIComponent(document.getElementById('vcardPhoneInput').value);
                 var email = encodeURIComponent(document.getElementById('vcardEmailInput').value);
                 var address = encodeURIComponent(document.getElementById('vcardAddressInput').value);
-                data = `BEGIN:VCARD\nVERSION:3.0\nFN;CHARSET=UTF-8:${name}\nTEL;CHARSET=UTF-8:${phone}\nEMAIL;CHARSET=UTF-8:${email}\nADR;CHARSET=UTF-8:${address}\nEND:VCARD`;
+                data = `BEGIN:VCARD\nVERSION:3.0\nFN;CHARSET=UTF-8:${name}\nTEL:${phone}\nEMAIL:${email}\nADR;TYPE=HOME:${address}\nEND:VCARD`;
             }
 
             var width = document.getElementById('widthInput').value;
