@@ -55,8 +55,8 @@
             </div>
             <div class="form-row">
                 <div class="form-group col-md-6">
-                    <label for="paddingInput">Відступи (у пікселях):</label>
-                    <input type="number" class="form-control" id="paddingInput" value="0" min="0" required>
+                    <label for="paddingInput">Відступи (у відсотках):</label>
+                    <input type="number" class="form-control" id="paddingInput" value="0" min="0" max="50" required>
                 </div>
             </div>
             <button type="submit" class="btn btn-primary">Згенерувати</button>
@@ -87,6 +87,7 @@
                 width: width,
                 height: height,
                 data: url,
+                margin: padding / 100 * Math.min(width, height), // Відсоток від найменшого виміру
                 dotsOptions: {
                     color: dotColor,
                     type: dotStyle,
@@ -101,9 +102,6 @@
                 },
                 cornersDotOptions: {
                     type: "extra-rounded" // Суцільні квадрати зі скругленими кутами
-                },
-                qrOptions: {
-                    margin: parseInt(padding)
                 }
             };
 
