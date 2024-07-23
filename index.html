@@ -51,8 +51,7 @@
         <a id="download-link" class="btn btn-success mt-2" style="display:none;" download>Download QR Code</a>
     </div>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-svg/1.2.2/qrcode.min.js"></script>
 <script>
     function generateQRCode() {
         const qrText = document.getElementById('qr-text').value;
@@ -63,36 +62,44 @@
         const qrDotRoundness = document.getElementById('qr-dot-roundness').value;
         const qrPosRoundness = document.getElementById('qr-pos-roundness').value;
 
-        const qr = new QRious({
-            element: document.createElement('canvas'),
-            value: qrText,
-            size: qrSize,
+        const qr = new QRCode({
+            content: qrText,
+            padding: 0,
+            width: qrSize,
+            height: qrSize,
+            color: qrFgColor,
             background: qrBgColor,
-            foreground: qrFgColor,
-            level: 'H'
+            ecl: 'H'
         });
 
-        const canvas = qr.canvas;
-        const ctx = canvas.getContext('2d');
+        const svg = qr.svg();
+        const parser = new DOMParser();
+        const svgDoc = parser.parseFromString(svg, "image/svg+xml");
+        const qrGroup = svgDoc.querySelector('g');
 
-        // Custom styles for roundness (example implementation)
-        // Background roundness
-        if (qrRoundness > 0) {
-            ctx.globalCompositeOperation = 'destination-over';
-            ctx.fillStyle = qrBgColor;
-            ctx.beginPath();
-            ctx.arc(canvas.width / 2, canvas.height / 2, canvas.width / 2, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.globalCompositeOperation = 'source-over';
-        }
+        // Apply custom styles for roundness
+        qrGroup.setAttribute('style', `fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;stroke-width:${qrRoundness}px;`);
 
-        // Add more custom styling as needed...
+        const qrDots = svgDoc.querySelectorAll('rect');
+        qrDots.forEach(dot => {
+            dot.setAttribute('rx', qrDotRoundness);
+            dot.setAttribute('ry', qrDotRoundness);
+        });
+
+        const qrPosElements = svgDoc.querySelectorAll('circle');
+        qrPosElements.forEach(pos => {
+            pos.setAttribute('r', qrPosRoundness);
+        });
 
         document.getElementById('qr-preview').innerHTML = '';
-        document.getElementById('qr-preview').appendChild(canvas);
+        document.getElementById('qr-preview').appendChild(svgDoc.documentElement);
+
+        const svgData = new XMLSerializer().serializeToString(svgDoc);
+        const svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
+        const svgUrl = URL.createObjectURL(svgBlob);
 
         document.getElementById('download-link').style.display = 'inline-block';
-        document.getElementById('download-link').href = canvas.toDataURL('image/svg+xml');
+        document.getElementById('download-link').href = svgUrl;
         document.getElementById('download-link').download = `qr-code-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.svg`;
     }
 </script>
