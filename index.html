@@ -58,6 +58,14 @@
                     <label for="paddingInput">Відступи (у відсотках):</label>
                     <input type="number" class="form-control" id="paddingInput" value="0" min="0" max="50" required>
                 </div>
+                <div class="form-group col-md6">
+                    <label for="cornerDotRadiusInput">Діаметр скруглення кутових базових точок (у відсотках):</label>
+                    <input type="number" class="form-control" id="cornerDotRadiusInput" value="0" min="0" max="50" required>
+                </div>
+                <div class="form-group col-md6">
+                    <label for="cornerSquareRadiusInput">Діаметр скруглення кутових квадратів (у відсотках):</label>
+                    <input type="number" class="form-control" id="cornerSquareRadiusInput" value="0" min="0" max="50" required>
+                </div>
             </div>
             <button type="submit" class="btn btn-primary">Згенерувати</button>
         </form>
@@ -82,6 +90,8 @@
             var dotRadius = document.getElementById('dotRadiusInput').value;
             var cornerRadius = document.getElementById('cornerRadiusInput').value;
             var padding = document.getElementById('paddingInput').value;
+            var cornerDotRadius = document.getElementById('cornerDotRadiusInput').value;
+            var cornerSquareRadius = document.getElementById('cornerSquareRadiusInput').value;
 
             var qrCodeOptions = {
                 width: width,
@@ -98,10 +108,12 @@
                     round: cornerRadius / 100 // Перетворюємо відсоток у значення для qr-code-styling
                 },
                 cornersSquareOptions: {
-                    type: "extra-rounded" // Суцільні квадрати зі скругленими кутами
+                    type: "extra-rounded", // Суцільні квадрати зі скругленими кутами
+                    radius: cornerSquareRadius / 100 // Додано параметр радіусу для кутових квадратів
                 },
                 cornersDotOptions: {
-                    type: "extra-rounded" // Суцільні квадрати зі скругленими кутами
+                    type: "extra-rounded", // Суцільні квадрати зі скругленими кутами
+                    radius: cornerDotRadius / 100 // Додано параметр радіусу для кутових точок
                 }
             };
 
