@@ -6,9 +6,9 @@
     <title>QR Code Generator</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        #qr-preview {
-            border: 1px solid #ccc;
-            display: inline-block;
+        #qr-preview svg {
+            width: 100%;
+            height: 100%;
         }
     </style>
 </head>
@@ -51,57 +51,56 @@
         <a id="download-link" class="btn btn-success mt-2" style="display:none;" download>Download QR Code</a>
     </div>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-svg/1.2.2/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
 <script>
-    function generateQRCode() {
-        const qrText = document.getElementById('qr-text').value;
-        const qrSize = document.getElementById('qr-size').value || 512;
-        const qrBgColor = document.getElementById('qr-bg-color').value;
-        const qrFgColor = document.getElementById('qr-fg-color').value;
-        const qrRoundness = document.getElementById('qr-roundness').value;
-        const qrDotRoundness = document.getElementById('qr-dot-roundness').value;
-        const qrPosRoundness = document.getElementById('qr-pos-roundness').value;
+function generateQRCode() {
+    const qrText = document.getElementById('qr-text').value;
+    const qrSize = parseInt(document.getElementById('qr-size').value) || 512;
+    const qrBgColor = document.getElementById('qr-bg-color').value;
+    const qrFgColor = document.getElementById('qr-fg-color').value;
+    const qrRoundness = parseInt(document.getElementById('qr-roundness').value);
+    const qrDotRoundness = parseInt(document.getElementById('qr-dot-roundness').value);
+    const qrPosRoundness = parseInt(document.getElementById('qr-pos-roundness').value);
 
-        const qr = new QRCode({
-            content: qrText,
-            padding: 0,
-            width: qrSize,
-            height: qrSize,
-            color: qrFgColor,
-            background: qrBgColor,
-            ecl: 'H'
+    const qrContainer = document.getElementById('qr-preview');
+    qrContainer.innerHTML = '';
+
+    const qrcode = new QRCode(qrContainer, {
+        text: qrText,
+        width: qrSize,
+        height: qrSize,
+        colorDark: qrFgColor,
+        colorLight: qrBgColor,
+        correctLevel: QRCode.CorrectLevel.H
+    });
+
+    // Custom styles for roundness
+    setTimeout(() => {
+        const svg = qrContainer.querySelector('svg');
+        const rects = svg.querySelectorAll('rect');
+        rects.forEach(rect => {
+            rect.setAttribute('rx', qrDotRoundness);
+            rect.setAttribute('ry', qrDotRoundness);
         });
 
-        const svg = qr.svg();
-        const parser = new DOMParser();
-        const svgDoc = parser.parseFromString(svg, "image/svg+xml");
-        const qrGroup = svgDoc.querySelector('g');
-
-        // Apply custom styles for roundness
-        qrGroup.setAttribute('style', `fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;stroke-width:${qrRoundness}px;`);
-
-        const qrDots = svgDoc.querySelectorAll('rect');
-        qrDots.forEach(dot => {
-            dot.setAttribute('rx', qrDotRoundness);
-            dot.setAttribute('ry', qrDotRoundness);
+        const circles = svg.querySelectorAll('circle');
+        circles.forEach(circle => {
+            circle.setAttribute('r', qrPosRoundness);
         });
 
-        const qrPosElements = svgDoc.querySelectorAll('circle');
-        qrPosElements.forEach(pos => {
-            pos.setAttribute('r', qrPosRoundness);
-        });
+        svg.style.borderRadius = `${qrRoundness}px`;
 
-        document.getElementById('qr-preview').innerHTML = '';
-        document.getElementById('qr-preview').appendChild(svgDoc.documentElement);
-
-        const svgData = new XMLSerializer().serializeToString(svgDoc);
-        const svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
         const svgUrl = URL.createObjectURL(svgBlob);
 
-        document.getElementById('download-link').style.display = 'inline-block';
-        document.getElementById('download-link').href = svgUrl;
-        document.getElementById('download-link').download = `qr-code-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.svg`;
-    }
+        const downloadLink = document.getElementById('download-link');
+        downloadLink.style.display = 'inline-block';
+        downloadLink.href = svgUrl;
+        downloadLink.download = `qr-code-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.svg`;
+    }, 500);
+}
 </script>
 </body>
 </html>
