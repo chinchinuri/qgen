@@ -98,7 +98,12 @@
         // Малюємо фон
         ctx.fillStyle = background;
         ctx.beginPath();
-        ctx.roundRect(0, 0, size, size, backgroundRadius);
+        ctx.moveTo(backgroundRadius, 0);
+        ctx.arcTo(size, 0, size, size, backgroundRadius);
+        ctx.arcTo(size, size, 0, size, backgroundRadius);
+        ctx.arcTo(0, size, 0, 0, backgroundRadius);
+        ctx.arcTo(0, 0, size, 0, backgroundRadius);
+        ctx.closePath();
         ctx.fill();
 
         // Малюємо QR-код
@@ -114,10 +119,19 @@
                     ctx.fillStyle = foreground;
                     ctx.beginPath();
                     if (isPositioningSquare(col, row, moduleCount)) {
-                        ctx.roundRect(x, y, moduleSize, moduleSize, cornerRadius);
+                        ctx.moveTo(x + cornerRadius, y);
+                        ctx.arcTo(x + moduleSize, y, x + moduleSize, y + moduleSize, cornerRadius);
+                        ctx.arcTo(x + moduleSize, y + moduleSize, x, y + moduleSize, cornerRadius);
+                        ctx.arcTo(x, y + moduleSize, x, y, cornerRadius);
+                        ctx.arcTo(x, y, x + moduleSize, y, cornerRadius);
                     } else {
-                        ctx.roundRect(x, y, moduleSize, moduleSize, dotRadius);
+                        ctx.moveTo(x + dotRadius, y);
+                        ctx.arcTo(x + moduleSize, y, x + moduleSize, y + moduleSize, dotRadius);
+                        ctx.arcTo(x + moduleSize, y + moduleSize, x, y + moduleSize, dotRadius);
+                        ctx.arcTo(x, y + moduleSize, x, y, dotRadius);
+                        ctx.arcTo(x, y, x + moduleSize, y, dotRadius);
                     }
+                    ctx.closePath();
                     ctx.fill();
                 }
             }
