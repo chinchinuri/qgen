@@ -84,7 +84,7 @@
         qr = new QRious({
             value: text,
             size: size,
-            background: background,
+            background: 'transparent',
             foreground: foreground,
             level: 'H',
             padding: margin
@@ -94,9 +94,34 @@
         const ctx = qrCanvas.getContext('2d');
         qrCanvas.width = size;
         qrCanvas.height = size;
+        
+        // Малюємо фон
         ctx.fillStyle = background;
-        ctx.fillRect(0, 0, size, size);
-        ctx.drawImage(qr.image, 0, 0, size, size);
+        ctx.beginPath();
+        ctx.roundRect(0, 0, size, size, backgroundRadius);
+        ctx.fill();
+
+        // Малюємо QR-код
+        const moduleCount = qr.modules;
+        const moduleSize = (size - 2 * margin) / moduleCount;
+
+        for (let row = 0; row < moduleCount; row++) {
+            for (let col = 0; col < moduleCount; col++) {
+                if (qr.modules[row][col]) {
+                    const x = col * moduleSize + margin;
+                    const y = row * moduleSize + margin;
+                    
+                    ctx.fillStyle = foreground;
+                    ctx.beginPath();
+                    if (isPositioningSquare(col, row, moduleCount)) {
+                        ctx.roundRect(x, y, moduleSize, moduleSize, cornerRadius);
+                    } else {
+                        ctx.roundRect(x, y, moduleSize, moduleSize, dotRadius);
+                    }
+                    ctx.fill();
+                }
+            }
+        }
     }
 
     function saveSVG() {
@@ -136,7 +161,7 @@
         svg.appendChild(background_rect);
 
         const moduleCount = qr.modules;
-        const moduleSize = size / moduleCount;
+        const moduleSize = (size - 2 * margin) / moduleCount;
 
         // Створюємо групу для всіх модулів QR-коду
         const qrGroup = document.createElementNS(svgNS, "g");
@@ -144,9 +169,9 @@
 
         for (let row = 0; row < moduleCount; row++) {
             for (let col = 0; col < moduleCount; col++) {
-                if (qr.qrious.modules[row][col]) {
-                    const x = col * moduleSize;
-                    const y = row * moduleSize;
+                if (qr.modules[row][col]) {
+                    const x = col * moduleSize + margin;
+                    const y = row * moduleSize + margin;
                     
                     const module = document.createElementNS(svgNS, "rect");
                     module.setAttribute("x", x);
