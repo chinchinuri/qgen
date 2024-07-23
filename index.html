@@ -1,115 +1,182 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Code Generator</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        #qr-preview svg {
-            width: 100%;
-            height: 100%;
-        }
-    </style>
+    <title>Генератор QR-кодів</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
 </head>
 <body>
-<div class="container mt-5">
-    <h1 class="text-center">QR Code Generator</h1>
-    <form id="qr-form" class="mt-4">
-        <div class="form-group">
-            <label for="qr-text">Text to encode</label>
-            <input type="text" class="form-control" id="qr-text" placeholder="Enter text">
+    <div class="container mt-5">
+        <h1 class="mb-4">Генератор QR-кодів</h1>
+        <div class="row">
+            <div class="col-md-6">
+                <form id="qr-form">
+                    <div class="mb-3">
+                        <label for="qr-text" class="form-label">Текст для QR-коду:</label>
+                        <input type="text" class="form-control" id="qr-text" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="qr-size" class="form-label">Розмір (пікселі):</label>
+                        <input type="number" class="form-control" id="qr-size" value="512" min="128" max="1024">
+                    </div>
+                    <div class="mb-3">
+                        <label for="qr-background" class="form-label">Колір фону:</label>
+                        <input type="color" class="form-control" id="qr-background" value="#ffffff">
+                    </div>
+                    <div class="mb-3">
+                        <label for="qr-foreground" class="form-label">Колір елементів:</label>
+                        <input type="color" class="form-control" id="qr-foreground" value="#000000">
+                    </div>
+                    <div class="mb-3">
+                        <label for="qr-background-radius" class="form-label">Округлість кутів фону:</label>
+                        <input type="range" class="form-range" id="qr-background-radius" min="0" max="50" value="0">
+                    </div>
+                    <div class="mb-3">
+                        <label for="qr-dot-radius" class="form-label">Округлість кутів крапок:</label>
+                        <input type="range" class="form-range" id="qr-dot-radius" min="0" max="50" value="0">
+                    </div>
+                    <div class="mb-3">
+                        <label for="qr-corner-radius" class="form-label">Округлість кутів елементів позиціонування:</label>
+                        <input type="range" class="form-range" id="qr-corner-radius" min="0" max="50" value="0">
+                    </div>
+                    <div class="mb-3">
+                        <label for="qr-margin" class="form-label">Поля (модулі):</label>
+                        <input type="number" class="form-control" id="qr-margin" value="4" min="0" max="10">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Згенерувати QR-код</button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <canvas id="qr-canvas"></canvas>
+                <div class="mt-3">
+                    <button id="save-svg" class="btn btn-success">Зберегти як SVG</button>
+                </div>
+            </div>
         </div>
-        <div class="form-group">
-            <label for="qr-size">Size (default 512x512)</label>
-            <input type="number" class="form-control" id="qr-size" value="512">
-        </div>
-        <div class="form-group">
-            <label for="qr-bg-color">Background Color</label>
-            <input type="color" class="form-control" id="qr-bg-color" value="#ffffff">
-        </div>
-        <div class="form-group">
-            <label for="qr-fg-color">Foreground Color</label>
-            <input type="color" class="form-control" id="qr-fg-color" value="#000000">
-        </div>
-        <div class="form-group">
-            <label for="qr-roundness">Background Roundness</label>
-            <input type="range" class="form-control" id="qr-roundness" min="0" max="50" value="0">
-        </div>
-        <div class="form-group">
-            <label for="qr-dot-roundness">Dot Roundness</label>
-            <input type="range" class="form-control" id="qr-dot-roundness" min="0" max="50" value="0">
-        </div>
-        <div class="form-group">
-            <label for="qr-pos-roundness">Position Element Roundness</label>
-            <input type="range" class="form-control" id="qr-pos-roundness" min="0" max="50" value="0">
-        </div>
-        <div class="form-group">
-            <label for="qr-padding">Padding (default 10)</label>
-            <input type="number" class="form-control" id="qr-padding" value="10">
-        </div>
-        <button type="button" class="btn btn-primary" onclick="generateQRCode()">Generate QR Code</button>
-    </form>
-    <div class="text-center mt-4">
-        <div id="qr-preview"></div>
-        <a id="download-link" class="btn btn-success mt-2" style="display:none;" download>Download QR Code</a>
     </div>
-</div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
-<script>
-function generateQRCode() {
-    const qrText = document.getElementById('qr-text').value;
-    const qrSize = parseInt(document.getElementById('qr-size').value) || 512;
-    const qrBgColor = document.getElementById('qr-bg-color').value;
-    const qrFgColor = document.getElementById('qr-fg-color').value;
-    const qrRoundness = parseInt(document.getElementById('qr-roundness').value);
-    const qrDotRoundness = parseInt(document.getElementById('qr-dot-roundness').value);
-    const qrPosRoundness = parseInt(document.getElementById('qr-pos-roundness').value);
-    const qrPadding = parseInt(document.getElementById('qr-padding').value) || 10;
 
-    const qrContainer = document.getElementById('qr-preview');
-    qrContainer.innerHTML = '';
+    <script>
+        const qrCanvas = document.getElementById('qr-canvas');
+        const qrForm = document.getElementById('qr-form');
+        const saveSvgBtn = document.getElementById('save-svg');
 
-    const qrcode = new QRCode(qrContainer, {
-        text: qrText,
-        width: qrSize,
-        height: qrSize,
-        colorDark: qrFgColor,
-        colorLight: qrBgColor,
-        correctLevel: QRCode.CorrectLevel.H
-    });
+        let qr;
 
-    // Custom styles for roundness
-    setTimeout(() => {
-        const svg = qrContainer.querySelector('svg');
-        if (svg) {
-            svg.setAttribute('viewBox', `-${qrPadding} -${qrPadding} ${qrSize + 2 * qrPadding} ${qrSize + 2 * qrPadding}`);
+        qrForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            generateQR();
+        });
 
-            const rects = svg.querySelectorAll('rect');
-            rects.forEach(rect => {
-                rect.setAttribute('rx', qrDotRoundness);
-                rect.setAttribute('ry', qrDotRoundness);
+        saveSvgBtn.addEventListener('click', saveSVG);
+
+        function generateQR() {
+            const text = document.getElementById('qr-text').value;
+            const size = parseInt(document.getElementById('qr-size').value);
+            const background = document.getElementById('qr-background').value;
+            const foreground = document.getElementById('qr-foreground').value;
+            const backgroundRadius = parseInt(document.getElementById('qr-background-radius').value);
+            const dotRadius = parseInt(document.getElementById('qr-dot-radius').value);
+            const cornerRadius = parseInt(document.getElementById('qr-corner-radius').value);
+            const margin = parseInt(document.getElementById('qr-margin').value);
+
+            qr = new QRious({
+                element: qrCanvas,
+                value: text,
+                size: size,
+                background: background,
+                foreground: foreground,
+                backgroundAlpha: 1,
+                foregroundAlpha: 1,
+                level: 'H',
+                padding: margin
             });
 
-            const positions = svg.querySelectorAll('circle');
-            positions.forEach(pos => {
-                pos.setAttribute('r', qrPosRoundness);
-            });
-
-            svg.style.borderRadius = `${qrRoundness}px`;
-
-            const svgData = new XMLSerializer().serializeToString(svg);
-            const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-            const svgUrl = URL.createObjectURL(svgBlob);
-
-            const downloadLink = document.getElementById('download-link');
-            downloadLink.style.display = 'inline-block';
-            downloadLink.href = svgUrl;
-            downloadLink.download = `qr-code-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.svg`;
+            // Застосування округлості кутів
+            applyCornerRadius(backgroundRadius, dotRadius, cornerRadius);
         }
-    }, 500);
-}
-</script>
+
+        function applyCornerRadius(backgroundRadius, dotRadius, cornerRadius) {
+            const ctx = qrCanvas.getContext('2d');
+            const imageData = ctx.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
+            const data = imageData.data;
+            const size = qrCanvas.width;
+            const moduleSize = size / qr.modules;
+
+            for (let y = 0; y < size; y++) {
+                for (let x = 0; x < size; x++) {
+                    const i = (y * size + x) * 4;
+                    const moduleX = Math.floor(x / moduleSize);
+                    const moduleY = Math.floor(y / moduleSize);
+
+                    if (isPositioningSquare(moduleX, moduleY, qr.modules)) {
+                        applyRadiusToModule(data, x, y, size, cornerRadius);
+                    } else if (qr.modules[moduleY][moduleX]) {
+                        applyRadiusToModule(data, x, y, size, dotRadius);
+                    }
+                }
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+
+            // Застосування округлості фону
+            ctx.globalCompositeOperation = 'destination-over';
+            ctx.fillStyle = qr.background;
+            ctx.beginPath();
+            ctx.roundRect(0, 0, size, size, backgroundRadius);
+            ctx.fill();
+        }
+
+        function isPositioningSquare(x, y, modules) {
+            const size = modules.length;
+            return (x < 7 && y < 7) || (x > size - 8 && y < 7) || (x < 7 && y > size - 8);
+        }
+
+        function applyRadiusToModule(data, x, y, size, radius) {
+            const i = (y * size + x) * 4;
+            const corners = [
+                [x - 0.5, y - 0.5],
+                [x + 0.5, y - 0.5],
+                [x - 0.5, y + 0.5],
+                [x + 0.5, y + 0.5]
+            ];
+
+            let inside = false;
+            for (const [cx, cy] of corners) {
+                if (Math.sqrt((x - cx) ** 2 + (y - cy) ** 2) <= radius) {
+                    inside = true;
+                    break;
+                }
+            }
+
+            if (!inside) {
+                data[i + 3] = 0;
+            }
+        }
+
+        function saveSVG() {
+            const svgString = qr.toDataURL('image/svg+xml');
+            const blob = new Blob([svgString], {type: 'image/svg+xml;charset=utf-8'});
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = getFileName();
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function getFileName() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            return `${year}-${month}-${day}-${hours}-${minutes}-${seconds}.svg`;
+        }
+    </script>
 </body>
 </html>
