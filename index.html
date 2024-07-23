@@ -108,11 +108,13 @@
                     round: cornerRadius / 100 // Перетворюємо відсоток у значення для qr-code-styling
                 },
                 cornersSquareOptions: {
-                    type: "square", // Суцільні квадрати
+                    color: dotColor,
+                    type: "extra-rounded", // Суцільні квадрати зі скругленими кутами
                     radius: cornerSquareRadius / 100 // Додано параметр радіусу для кутових квадратів
                 },
                 cornersDotOptions: {
-                    type: "dot", // Круглі точки
+                    color: dotColor,
+                    type: "extra-rounded", // Суцільні точки зі скругленими кутами
                     radius: cornerDotRadius / 100 // Додано параметр радіусу для кутових точок
                 }
             };
