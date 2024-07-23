@@ -58,125 +58,175 @@
     </div>
 
     <script>
-        const qrCanvas = document.getElementById('qr-canvas');
-        const qrForm = document.getElementById('qr-form');
-        const saveSvgBtn = document.getElementById('save-svg');
+    const qrCanvas = document.getElementById('qr-canvas');
+    const qrForm = document.getElementById('qr-form');
+    const saveSvgBtn = document.getElementById('save-svg');
 
-        let qr;
+    let qr;
 
-        qrForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            generateQR();
+    qrForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        generateQR();
+    });
+
+    saveSvgBtn.addEventListener('click', saveSVG);
+
+    function generateQR() {
+        const text = document.getElementById('qr-text').value;
+        const size = parseInt(document.getElementById('qr-size').value);
+        const background = document.getElementById('qr-background').value;
+        const foreground = document.getElementById('qr-foreground').value;
+        const backgroundRadius = parseInt(document.getElementById('qr-background-radius').value);
+        const dotRadius = parseInt(document.getElementById('qr-dot-radius').value);
+        const cornerRadius = parseInt(document.getElementById('qr-corner-radius').value);
+        const margin = parseInt(document.getElementById('qr-margin').value);
+
+        // Створюємо тимчасовий canvas для генерації QR-коду
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = size;
+        tempCanvas.height = size;
+
+        qr = new QRious({
+            element: tempCanvas,
+            value: text,
+            size: size,
+            background: 'rgba(0,0,0,0)', // Прозорий фон
+            foreground: foreground,
+            level: 'H',
+            padding: margin
         });
 
-        saveSvgBtn.addEventListener('click', saveSVG);
+        // Застосовуємо округлість кутів та фон
+        applyCornerRadius(tempCanvas, backgroundRadius, dotRadius, cornerRadius, background);
+    }
 
-        function generateQR() {
-            const text = document.getElementById('qr-text').value;
-            const size = parseInt(document.getElementById('qr-size').value);
-            const background = document.getElementById('qr-background').value;
-            const foreground = document.getElementById('qr-foreground').value;
-            const backgroundRadius = parseInt(document.getElementById('qr-background-radius').value);
-            const dotRadius = parseInt(document.getElementById('qr-dot-radius').value);
-            const cornerRadius = parseInt(document.getElementById('qr-corner-radius').value);
-            const margin = parseInt(document.getElementById('qr-margin').value);
+    function applyCornerRadius(tempCanvas, backgroundRadius, dotRadius, cornerRadius, backgroundColor) {
+        const ctx = qrCanvas.getContext('2d');
+        const size = tempCanvas.width;
 
-            qr = new QRious({
-                element: qrCanvas,
-                value: text,
-                size: size,
-                background: background,
-                foreground: foreground,
-                backgroundAlpha: 1,
-                foregroundAlpha: 1,
-                level: 'H',
-                padding: margin
-            });
+        // Очищаємо основний canvas
+        ctx.clearRect(0, 0, size, size);
 
-            // Застосування округлості кутів
-            applyCornerRadius(backgroundRadius, dotRadius, cornerRadius);
-        }
+        // Малюємо округлений фон
+        ctx.fillStyle = backgroundColor;
+        ctx.beginPath();
+        ctx.roundRect(0, 0, size, size, backgroundRadius);
+        ctx.fill();
 
-        function applyCornerRadius(backgroundRadius, dotRadius, cornerRadius) {
-            const ctx = qrCanvas.getContext('2d');
-            const imageData = ctx.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
-            const data = imageData.data;
-            const size = qrCanvas.width;
-            const moduleSize = size / qr.modules;
+        // Отримуємо дані QR-коду
+        const tempCtx = tempCanvas.getContext('2d');
+        const imageData = tempCtx.getImageData(0, 0, size, size);
+        const data = imageData.data;
 
-            for (let y = 0; y < size; y++) {
-                for (let x = 0; x < size; x++) {
-                    const i = (y * size + x) * 4;
-                    const moduleX = Math.floor(x / moduleSize);
-                    const moduleY = Math.floor(y / moduleSize);
+        // Створюємо новий ImageData для обробленого QR-коду
+        const processedImageData = ctx.createImageData(size, size);
+        const processedData = processedImageData.data;
 
+        const moduleSize = size / qr.modules;
+
+        for (let y = 0; y < size; y++) {
+            for (let x = 0; x < size; x++) {
+                const i = (y * size + x) * 4;
+                const moduleX = Math.floor(x / moduleSize);
+                const moduleY = Math.floor(y / moduleSize);
+
+                if (data[i + 3] > 0) { // Якщо піксель не прозорий
                     if (isPositioningSquare(moduleX, moduleY, qr.modules)) {
-                        applyRadiusToModule(data, x, y, size, cornerRadius);
-                    } else if (qr.modules[moduleY][moduleX]) {
-                        applyRadiusToModule(data, x, y, size, dotRadius);
+                        applyRadiusToModule(processedData, x, y, size, cornerRadius);
+                    } else {
+                        applyRadiusToModule(processedData, x, y, size, dotRadius);
                     }
                 }
             }
-
-            ctx.putImageData(imageData, 0, 0);
-
-            // Застосування округлості фону
-            ctx.globalCompositeOperation = 'destination-over';
-            ctx.fillStyle = qr.background;
-            ctx.beginPath();
-            ctx.roundRect(0, 0, size, size, backgroundRadius);
-            ctx.fill();
         }
 
-        function isPositioningSquare(x, y, modules) {
-            const size = modules.length;
-            return (x < 7 && y < 7) || (x > size - 8 && y < 7) || (x < 7 && y > size - 8);
-        }
+        // Накладаємо оброблений QR-код на фон
+        ctx.putImageData(processedImageData, 0, 0);
+    }
 
-        function applyRadiusToModule(data, x, y, size, radius) {
-            const i = (y * size + x) * 4;
-            const corners = [
-                [x - 0.5, y - 0.5],
-                [x + 0.5, y - 0.5],
-                [x - 0.5, y + 0.5],
-                [x + 0.5, y + 0.5]
-            ];
+    function isPositioningSquare(x, y, modules) {
+        const size = modules.length;
+        return (x < 7 && y < 7) || (x > size - 8 && y < 7) || (x < 7 && y > size - 8);
+    }
 
-            let inside = false;
-            for (const [cx, cy] of corners) {
-                if (Math.sqrt((x - cx) ** 2 + (y - cy) ** 2) <= radius) {
-                    inside = true;
-                    break;
-                }
-            }
+    function applyRadiusToModule(data, x, y, size, radius) {
+        const i = (y * size + x) * 4;
+        const corners = [
+            [x - 0.5, y - 0.5],
+            [x + 0.5, y - 0.5],
+            [x - 0.5, y + 0.5],
+            [x + 0.5, y + 0.5]
+        ];
 
-            if (!inside) {
-                data[i + 3] = 0;
+        let inside = false;
+        for (const [cx, cy] of corners) {
+            if (Math.sqrt((x - cx) ** 2 + (y - cy) ** 2) <= radius) {
+                inside = true;
+                break;
             }
         }
 
-        function saveSVG() {
-            const svgString = qr.toDataURL('image/svg+xml');
-            const blob = new Blob([svgString], {type: 'image/svg+xml;charset=utf-8'});
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = getFileName();
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        if (inside) {
+            data[i] = 0;
+            data[i + 1] = 0;
+            data[i + 2] = 0;
+            data[i + 3] = 255;
         }
+    }
 
-        function getFileName() {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            return `${year}-${month}-${day}-${hours}-${minutes}-${seconds}.svg`;
-        }
-    </script>
+    function saveSVG() {
+        const svg = generateSVG();
+        const blob = new Blob([svg], {type: 'image/svg+xml;charset=utf-8'});
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = getFileName();
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function generateSVG() {
+        const size = parseInt(document.getElementById('qr-size').value);
+        const background = document.getElementById('qr-background').value;
+        const foreground = document.getElementById('qr-foreground').value;
+        const backgroundRadius = parseInt(document.getElementById('qr-background-radius').value);
+        
+        const svgNS = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(svgNS, "svg");
+        svg.setAttribute("width", size);
+        svg.setAttribute("height", size);
+        svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
+
+        // Додаємо фон з округленими кутами
+        const background_rect = document.createElementNS(svgNS, "rect");
+        background_rect.setAttribute("width", size);
+        background_rect.setAttribute("height", size);
+        background_rect.setAttribute("fill", background);
+        background_rect.setAttribute("rx", backgroundRadius);
+        background_rect.setAttribute("ry", backgroundRadius);
+        svg.appendChild(background_rect);
+
+        // Додаємо QR-код
+        const qr_image = document.createElementNS(svgNS, "image");
+        qr_image.setAttribute("width", size);
+        qr_image.setAttribute("height", size);
+        qr_image.setAttribute("href", qrCanvas.toDataURL());
+        svg.appendChild(qr_image);
+
+        return new XMLSerializer().serializeToString(svg);
+    }
+
+    function getFileName() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        return `${year}-${month}-${day}-${hours}-${minutes}-${seconds}.svg`;
+    }
+</script>
 </body>
 </html>
