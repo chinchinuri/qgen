@@ -102,7 +102,7 @@
         ctx.fill();
 
         // Малюємо QR-код
-        const moduleCount = qr.modules;
+        const moduleCount = qr.modules.length;
         const moduleSize = (size - 2 * margin) / moduleCount;
 
         for (let row = 0; row < moduleCount; row++) {
@@ -160,7 +160,7 @@
         background_rect.setAttribute("ry", backgroundRadius);
         svg.appendChild(background_rect);
 
-        const moduleCount = qr.modules;
+        const moduleCount = qr.modules.length;
         const moduleSize = (size - 2 * margin) / moduleCount;
 
         // Створюємо групу для всіх модулів QR-коду
