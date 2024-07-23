@@ -44,6 +44,10 @@
             <label for="qr-pos-roundness">Position Element Roundness</label>
             <input type="range" class="form-control" id="qr-pos-roundness" min="0" max="50" value="0">
         </div>
+        <div class="form-group">
+            <label for="qr-padding">Padding (default 10)</label>
+            <input type="number" class="form-control" id="qr-padding" value="10">
+        </div>
         <button type="button" class="btn btn-primary" onclick="generateQRCode()">Generate QR Code</button>
     </form>
     <div class="text-center mt-4">
@@ -62,6 +66,7 @@ function generateQRCode() {
     const qrRoundness = parseInt(document.getElementById('qr-roundness').value);
     const qrDotRoundness = parseInt(document.getElementById('qr-dot-roundness').value);
     const qrPosRoundness = parseInt(document.getElementById('qr-pos-roundness').value);
+    const qrPadding = parseInt(document.getElementById('qr-padding').value) || 10;
 
     const qrContainer = document.getElementById('qr-preview');
     qrContainer.innerHTML = '';
@@ -78,27 +83,31 @@ function generateQRCode() {
     // Custom styles for roundness
     setTimeout(() => {
         const svg = qrContainer.querySelector('svg');
-        const rects = svg.querySelectorAll('rect');
-        rects.forEach(rect => {
-            rect.setAttribute('rx', qrDotRoundness);
-            rect.setAttribute('ry', qrDotRoundness);
-        });
+        if (svg) {
+            svg.setAttribute('viewBox', `-${qrPadding} -${qrPadding} ${qrSize + 2 * qrPadding} ${qrSize + 2 * qrPadding}`);
 
-        const circles = svg.querySelectorAll('circle');
-        circles.forEach(circle => {
-            circle.setAttribute('r', qrPosRoundness);
-        });
+            const rects = svg.querySelectorAll('rect');
+            rects.forEach(rect => {
+                rect.setAttribute('rx', qrDotRoundness);
+                rect.setAttribute('ry', qrDotRoundness);
+            });
 
-        svg.style.borderRadius = `${qrRoundness}px`;
+            const positions = svg.querySelectorAll('circle');
+            positions.forEach(pos => {
+                pos.setAttribute('r', qrPosRoundness);
+            });
 
-        const svgData = new XMLSerializer().serializeToString(svg);
-        const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-        const svgUrl = URL.createObjectURL(svgBlob);
+            svg.style.borderRadius = `${qrRoundness}px`;
 
-        const downloadLink = document.getElementById('download-link');
-        downloadLink.style.display = 'inline-block';
-        downloadLink.href = svgUrl;
-        downloadLink.download = `qr-code-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.svg`;
+            const svgData = new XMLSerializer().serializeToString(svg);
+            const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+            const svgUrl = URL.createObjectURL(svgBlob);
+
+            const downloadLink = document.getElementById('download-link');
+            downloadLink.style.display = 'inline-block';
+            downloadLink.href = svgUrl;
+            downloadLink.download = `qr-code-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.svg`;
+        }
     }, 500);
 }
 </script>
