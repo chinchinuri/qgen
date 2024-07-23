@@ -81,101 +81,22 @@
         const cornerRadius = parseInt(document.getElementById('qr-corner-radius').value);
         const margin = parseInt(document.getElementById('qr-margin').value);
 
-        // Встановлюємо розмір canvas
-        qrCanvas.width = size;
-        qrCanvas.height = size;
-
-        // Створюємо QR-код на тимчасовому canvas
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = size;
-        tempCanvas.height = size;
-        
         qr = new QRious({
-            element: tempCanvas,
             value: text,
             size: size,
-            background: 'rgba(0,0,0,0)', // Прозорий фон
+            background: background,
             foreground: foreground,
             level: 'H',
             padding: margin
         });
 
-        // Застосовуємо округлість кутів та малюємо на основному canvas
-        applyCornerRadius(tempCanvas, backgroundRadius, dotRadius, cornerRadius, background);
-    }
-
-    function applyCornerRadius(tempCanvas, backgroundRadius, dotRadius, cornerRadius, backgroundColor) {
+        // Малюємо QR-код на canvas для попереднього перегляду
         const ctx = qrCanvas.getContext('2d');
-        const size = tempCanvas.width;
-
-        // Очищаємо основний canvas
-        ctx.clearRect(0, 0, size, size);
-
-        // Малюємо округлений фон
-        ctx.fillStyle = backgroundColor;
-        ctx.beginPath();
-        ctx.roundRect(0, 0, size, size, backgroundRadius);
-        ctx.fill();
-
-        // Отримуємо дані QR-коду
-        const tempCtx = tempCanvas.getContext('2d');
-        const imageData = tempCtx.getImageData(0, 0, size, size);
-        const data = imageData.data;
-
-        // Створюємо новий ImageData для обробленого QR-коду
-        const processedImageData = ctx.createImageData(size, size);
-        const processedData = processedImageData.data;
-
-        const moduleSize = size / qr.modules;
-
-        for (let y = 0; y < size; y++) {
-            for (let x = 0; x < size; x++) {
-                const i = (y * size + x) * 4;
-                const moduleX = Math.floor(x / moduleSize);
-                const moduleY = Math.floor(y / moduleSize);
-
-                if (data[i + 3] > 0) { // Якщо піксель не прозорий
-                    if (isPositioningSquare(moduleX, moduleY, qr.modules)) {
-                        applyRadiusToModule(processedData, x, y, size, cornerRadius);
-                    } else {
-                        applyRadiusToModule(processedData, x, y, size, dotRadius);
-                    }
-                }
-            }
-        }
-
-        // Накладаємо оброблений QR-код на фон
-        ctx.putImageData(processedImageData, 0, 0);
-    }
-
-    function isPositioningSquare(x, y, modules) {
-        const size = modules.length;
-        return (x < 7 && y < 7) || (x > size - 8 && y < 7) || (x < 7 && y > size - 8);
-    }
-
-    function applyRadiusToModule(data, x, y, size, radius) {
-        const i = (y * size + x) * 4;
-        const corners = [
-            [x - 0.5, y - 0.5],
-            [x + 0.5, y - 0.5],
-            [x - 0.5, y + 0.5],
-            [x + 0.5, y + 0.5]
-        ];
-
-        let inside = false;
-        for (const [cx, cy] of corners) {
-            if (Math.sqrt((x - cx) ** 2 + (y - cy) ** 2) <= radius) {
-                inside = true;
-                break;
-            }
-        }
-
-        if (inside) {
-            data[i] = 0;
-            data[i + 1] = 0;
-            data[i + 2] = 0;
-            data[i + 3] = 255;
-        }
+        qrCanvas.width = size;
+        qrCanvas.height = size;
+        ctx.fillStyle = background;
+        ctx.fillRect(0, 0, size, size);
+        ctx.drawImage(qr.image, 0, 0, size, size);
     }
 
     function saveSVG() {
@@ -193,7 +114,11 @@
     function generateSVG() {
         const size = parseInt(document.getElementById('qr-size').value);
         const background = document.getElementById('qr-background').value;
+        const foreground = document.getElementById('qr-foreground').value;
         const backgroundRadius = parseInt(document.getElementById('qr-background-radius').value);
+        const dotRadius = parseInt(document.getElementById('qr-dot-radius').value);
+        const cornerRadius = parseInt(document.getElementById('qr-corner-radius').value);
+        const margin = parseInt(document.getElementById('qr-margin').value);
         
         const svgNS = "http://www.w3.org/2000/svg";
         const svg = document.createElementNS(svgNS, "svg");
@@ -210,14 +135,44 @@
         background_rect.setAttribute("ry", backgroundRadius);
         svg.appendChild(background_rect);
 
-        // Додаємо QR-код
-        const qr_image = document.createElementNS(svgNS, "image");
-        qr_image.setAttribute("width", size);
-        qr_image.setAttribute("height", size);
-        qr_image.setAttribute("href", qrCanvas.toDataURL());
-        svg.appendChild(qr_image);
+        const moduleCount = qr.modules;
+        const moduleSize = size / moduleCount;
+
+        // Створюємо групу для всіх модулів QR-коду
+        const qrGroup = document.createElementNS(svgNS, "g");
+        svg.appendChild(qrGroup);
+
+        for (let row = 0; row < moduleCount; row++) {
+            for (let col = 0; col < moduleCount; col++) {
+                if (qr.qrious.modules[row][col]) {
+                    const x = col * moduleSize;
+                    const y = row * moduleSize;
+                    
+                    const module = document.createElementNS(svgNS, "rect");
+                    module.setAttribute("x", x);
+                    module.setAttribute("y", y);
+                    module.setAttribute("width", moduleSize);
+                    module.setAttribute("height", moduleSize);
+                    module.setAttribute("fill", foreground);
+
+                    if (isPositioningSquare(col, row, moduleCount)) {
+                        module.setAttribute("rx", cornerRadius);
+                        module.setAttribute("ry", cornerRadius);
+                    } else {
+                        module.setAttribute("rx", dotRadius);
+                        module.setAttribute("ry", dotRadius);
+                    }
+
+                    qrGroup.appendChild(module);
+                }
+            }
+        }
 
         return new XMLSerializer().serializeToString(svg);
+    }
+
+    function isPositioningSquare(x, y, size) {
+        return (x < 7 && y < 7) || (x > size - 8 && y < 7) || (x < 7 && y > size - 8);
     }
 
     function getFileName() {
