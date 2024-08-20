@@ -3,8 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Генератор QR-кодів</title>
+    <title>QR Code Generator</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        svg {
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
 </head>
 <body>
     <div class="container mt-5">
@@ -15,7 +21,7 @@
                 <input type="text" id="text" class="form-control" placeholder="Введіть текст" required>
             </div>
             <div class="form-group">
-                <label for="color">Колір QR-коду:</label>
+                <label for="color">Колір елементів QR-коду:</label>
                 <input type="color" id="color" class="form-control" value="#000000">
             </div>
             <div class="form-group">
@@ -26,6 +32,10 @@
                 <label for="padding">Розмір відступів (пікселі):</label>
                 <input type="number" id="padding" class="form-control" value="4">
             </div>
+            <div class="form-group">
+                <label for="borderRadius">Округлість кутів фону (пікселі):</label>
+                <input type="number" id="borderRadius" class="form-control" value="15">
+            </div>
             <button type="button" class="btn btn-primary" onclick="generateQRCode()">Генерувати QR-код</button>
         </form>
 
@@ -35,7 +45,6 @@
         </div>
     </div>
 
-    <!-- Підключення бібліотеки QRCode-SVG -->
     <script src="https://cdn.jsdelivr.net/npm/qrcode-svg@1.1.0/dist/qrcode.min.js"></script>
 
     <script>
@@ -44,6 +53,7 @@
             const color = document.getElementById('color').value;
             const bgColor = document.getElementById('bgColor').value;
             const padding = parseInt(document.getElementById('padding').value);
+            const borderRadius = parseInt(document.getElementById('borderRadius').value);
 
             // Очищаємо попередній QR-код
             document.getElementById('qr-output').innerHTML = '';
@@ -60,8 +70,14 @@
             });
 
             // Додаємо SVG у сторінку
-            const svgElement = qr.svg();
+            let svgElement = qr.svg();
+
+            // Додаємо оновлений SVG у сторінку
             document.getElementById('qr-output').innerHTML = svgElement;
+
+            // Змінюємо стиль SVG-елементу
+            const svg = document.querySelector('svg');
+            svg.style.borderRadius = `${borderRadius}px`;
 
             // Показуємо кнопку для збереження SVG
             document.getElementById('svg-container').style.display = 'block';
